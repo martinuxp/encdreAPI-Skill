@@ -1,4 +1,7 @@
-# Encuadre Production API Skill
+<img width="261" height="40" alt="ENCDRE API" src="https://github.com/user-attachments/assets/4953bb18-b04e-4c37-956a-2860b5ab778c" />
+</svg>
+
+# Skill API - ENCDRE Prod. Portal
 
 Skill para agentes que necesitan consultar o modificar información del Portal de Producción de Encuadre mediante la API REST desplegada en Firebase Functions.
 
