@@ -5,6 +5,26 @@
 
 Skill para agentes que necesitan consultar o modificar información del Portal de Producción de Encuadre mediante la API REST desplegada en Firebase Functions.
 
+## Instalación
+
+Instala la skill con `npx skills`:
+
+```bash
+npx skills add https://github.com/martinuxp/encdreAPI-Skill.git
+```
+
+Para instalarla sin interacción:
+
+```bash
+npx skills add https://github.com/martinuxp/encdreAPI-Skill.git -y
+```
+
+Después de instalarla, invócala con:
+
+```text
+$encuadre-production-api
+```
+
 ## API
 
 Base URL:
