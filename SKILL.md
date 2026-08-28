@@ -19,12 +19,14 @@ Use this skill whenever an agent needs to interact with the Encuadre production 
 
 ## Authentication selection
 
-Use one of these server-side credentials:
+Every API call, including reads, must have exactly one of these credentials. Never make an unauthenticated exploratory call.
 
 1. Agent integration: `X-API-Key: <PRODUCTION_API_TOKEN>`.
-2. Internal web/user session: `Authorization: Bearer <Clerk session token>`.
+2. Temporary internal API session: `X-Encuadre-Session: <sessionToken>`.
 
-Read operations can use either. Create operations can use the agent token or a Clerk session. Updates, person associations, photo uploads, and deletes require a recent authorization grant in addition to the credential. Never ask the user to paste the API key into a browser.
+`PRODUCTION_API_TOKEN` is a runtime secret, not part of this skill. Do not search Git, prompts, chat history, or frontend files for it. On the authorized local production workstation, use `scripts/encuadre-api.ps1`; it retrieves the Secret Manager value without displaying it. In any other environment, require `ENCUADRE_PRODUCTION_API_TOKEN` to be configured securely before proceeding.
+
+A Clerk bearer token is valid only for `POST /auth/session` and `POST /auth/agent/approve`; it cannot call data endpoints. `POST /auth/session` exchanges an active Clerk session for an `X-Encuadre-Session` value which expires server-side after 30 minutes. Treat that value as a secret and do not print it in a chat response. Updates, person associations, photo uploads, and deletes also require a recent authorization grant. Never ask the user to paste the API key into a browser.
 
 ## Standard tool contract
 

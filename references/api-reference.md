@@ -13,12 +13,21 @@ X-API-Key: <secret>
 Content-Type: application/json
 ```
 
-Internal Clerk request:
+Temporary API session request:
 
 ```http
-Authorization: Bearer <Clerk session token>
+X-Encuadre-Session: <temporary API session token>
 Content-Type: application/json
 ```
+
+Every data endpoint requires either `X-API-Key` or `X-Encuadre-Session`. A direct Clerk bearer token is rejected for data access. It is only accepted to bootstrap a temporary API session:
+
+```http
+POST /auth/session
+Authorization: Bearer <Clerk session token>
+```
+
+The response contains `{ "data": { "sessionToken": "...", "expiresAt": "...", "expiresInSeconds": 1800 } }`. Send `sessionToken` as `X-Encuadre-Session` on subsequent calls. It expires after 30 minutes.
 
 Sensitive retry:
 

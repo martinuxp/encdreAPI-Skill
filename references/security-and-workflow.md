@@ -3,7 +3,7 @@
 ## Read flow
 
 1. Select the narrowest endpoint for the task.
-2. Send either the agent API key or a Clerk bearer token.
+2. Send either the agent API key or a temporary API session.
 3. Validate that the returned resource matches the requested project/contact ID.
 4. Do not expose unnecessary PII in the agent's final response.
 
@@ -29,6 +29,16 @@ Updates, project-person changes, photo uploads, and deletes require a grant. Whe
 
 The server binds a grant to the resource and method. A grant for `PATCH /contacts/A` cannot authorize `DELETE /contacts/A` or any operation on another resource.
 
+## Clerk bootstrap flow
+
+1. An internal user obtains an active Clerk session in the production portal.
+2. The client sends its Clerk bearer token only to `POST /api/auth/session`.
+3. The server validates it and returns a signed `sessionToken` that expires in 30 minutes.
+4. The client sends that value as `X-Encuadre-Session` for API calls.
+5. After expiry, the API returns `401 UNAUTHORIZED`; obtain a new temporary API session.
+
+The 30-minute expiry applies at the API boundary. The Clerk browser-login duration is configured separately in the Clerk Dashboard and is not exposed as direct API access.
+
 ## Permission model
 
 The API exposes a conservative baseline to agents and authenticated production users:
@@ -44,7 +54,7 @@ The server uses Firebase Admin SDK only inside the Function. The agent never rec
 ## Error handling
 
 - `400 VALIDATION_ERROR`: fix the request body; do not retry unchanged.
-- `401 UNAUTHORIZED`: credential missing/invalid; do not guess credentials.
+- `401 UNAUTHORIZED`: credential missing, invalid, or expired; do not guess credentials.
 - `401 INVALID_GRANT`: request a new grant; do not reuse or alter the old one.
 - `403 FORBIDDEN`: the credential lacks the endpoint permission.
 - `404 NOT_FOUND`: verify the ID and current project state.
