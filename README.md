@@ -60,7 +60,9 @@ No requiere variables locales, terminal ni API key. Configura el conector MCP re
 https://prod.encuadre.muxp.art/mcp
 ```
 
-ChatGPT abre el flujo OAuth, envía al usuario al portal de Encuadre para iniciar sesión en Clerk y obtiene un token temporal de lectura. No hay secretos que copiar al chat. El token vence a los 30 minutos y requiere conectar nuevamente. Actualmente el connector expone consultas de proyectos, contexto de proyecto y contactos; la API REST mantiene las operaciones de escritura con autorización reciente.
+ChatGPT abre el flujo OAuth, envía al usuario al portal de Encuadre para iniciar sesión en Clerk y obtiene un token temporal. No hay secretos que copiar al chat. El token vence a los 30 minutos y requiere conectar nuevamente. El connector expone consultas, creación y edición de proyectos, contactos, personas asociadas y fotos; las eliminaciones son soft delete.
+
+Cada escritura requiere una aprobación Clerk adicional. La herramienta devuelve un enlace temporal y un `approvalRequestId`; el agente muestra el enlace, espera la aprobación y reintenta exactamente la misma herramienta con ese identificador. Consulta [mcp-tools.md](./references/mcp-tools.md) para el contrato completo.
 
 ## Operaciones sensibles
 

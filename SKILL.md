@@ -33,9 +33,9 @@ This skill is cloud-first. Do not use PowerShell, Firebase CLI, local files, env
 
 For a normal ChatGPT cloud conversation, use the remote MCP connector at `https://prod.encuadre.muxp.art/mcp`. It uses OAuth authorization code flow with PKCE. ChatGPT owns the OAuth state and bearer token: the user is redirected to Encuadre, signs in with Clerk, and explicitly approves access. The MCP access token is opaque, server-side validated, and expires after 30 minutes; do not request or create refresh access.
 
-The current MCP connector exposes the read tools `list_projects`, `get_project`, `get_project_context`, `list_contacts`, and `get_contact`. For a workflow that needs writes, use the REST API connection and recent-grant flow described above until a corresponding MCP write tool is explicitly published.
+The MCP connector exposes reads and all supported production writes: projects, contacts, project people, contact photos, and soft deletes. Every MCP write has its own Clerk approval link and is bound to the exact operation and validated payload. The agent must show that link, wait, and retry the same tool with the returned `approvalRequestId`.
 
-Read `references/cloud-chatgpt.md` before configuring the connector. Never ask the user to paste an OAuth code, PKCE verifier, exchange secret, or session token into chat.
+Read `references/cloud-chatgpt.md` before configuring the connector and `references/mcp-tools.md` before making an MCP write. Never ask the user to paste an OAuth code, PKCE verifier, exchange secret, session token, or approval code into chat.
 
 ## Standard tool contract
 
