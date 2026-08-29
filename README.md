@@ -44,21 +44,13 @@ La skill define herramientas para trabajar con:
 
 ## Autenticación
 
-Cada llamado, incluso uno de lectura, requiere una credencial. Los agentes externos utilizan:
-
-```http
-X-API-Key: <PRODUCTION_API_TOKEN>
-```
-
-Una sesión Clerk no llama los endpoints de datos directamente. Se canjea por una sesión temporal de API:
+No hay API key ni una variable de entorno que configurar. El agente inicia una conexión y muestra el enlace temporal que devuelve la API. El usuario inicia sesión y aprueba mediante Clerk. Después, el agente canjea la solicitud por una sesión temporal de API:
 
 ```http
 X-Encuadre-Session: <TEMPORARY_API_SESSION_TOKEN>
 ```
 
-Para crear esa sesión temporal, el cliente interno envía `Authorization: Bearer <CLERK_SESSION_TOKEN>` a `POST /api/auth/session`. La sesión de API vence en el servidor después de 30 minutos. El token de producción no está incluido en la skill ni debe incluirse en frontend, prompts, logs, commits ni respuestas del agente.
-
-En la estación local autorizada se puede usar `scripts/encuadre-api.ps1`. El helper obtiene el token desde Secret Manager sin imprimirlo. En otro entorno, define `ENCUADRE_PRODUCTION_API_TOKEN` con un gestor de secretos antes de invocarlo.
+La sesión de API vence en el servidor después de 30 minutos. Los valores temporales de canje y sesión no se incluyen en frontend, prompts, logs, commits ni respuestas del agente.
 
 ## Operaciones sensibles
 

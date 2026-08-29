@@ -2,10 +2,11 @@
 
 ## Read flow
 
-1. Select the narrowest endpoint for the task.
-2. Send either the agent API key or a temporary API session.
-3. Validate that the returned resource matches the requested project/contact ID.
-4. Do not expose unnecessary PII in the agent's final response.
+1. Start `POST /api/auth/connect` if no current session exists.
+2. Present its `authUrl` to the user and wait for explicit approval through Clerk.
+3. Exchange the approved request exactly once, then send `X-Encuadre-Session`.
+4. Select the narrowest endpoint for the task and validate the returned resource.
+5. Do not expose unnecessary PII in the agent's final response.
 
 ## Sensitive write flow
 
@@ -29,13 +30,13 @@ Updates, project-person changes, photo uploads, and deletes require a grant. Whe
 
 The server binds a grant to the resource and method. A grant for `PATCH /contacts/A` cannot authorize `DELETE /contacts/A` or any operation on another resource.
 
-## Clerk bootstrap flow
+## Connection flow
 
-1. An internal user obtains an active Clerk session in the production portal.
-2. The client sends its Clerk bearer token only to `POST /api/auth/session`.
-3. The server validates it and returns a signed `sessionToken` that expires in 30 minutes.
-4. The client sends that value as `X-Encuadre-Session` for API calls.
-5. After expiry, the API returns `401 UNAUTHORIZED`; obtain a new temporary API session.
+1. `POST /api/auth/connect` creates a random request ID and a separate exchange secret. The request expires in 10 minutes.
+2. The agent shows the returned `authUrl`; only an internal Encuadre user can approve it through Clerk.
+3. The agent keeps the exchange secret outside the URL and calls `POST /api/auth/connect/:requestId/exchange` after approval.
+4. The server consumes the request once and returns a random API session valid for 30 minutes.
+5. After expiry, `CONNECTION_REQUIRED` means the agent must create and approve a new connection.
 
 The 30-minute expiry applies at the API boundary. The Clerk browser-login duration is configured separately in the Clerk Dashboard and is not exposed as direct API access.
 
@@ -54,7 +55,10 @@ The server uses Firebase Admin SDK only inside the Function. The agent never rec
 ## Error handling
 
 - `400 VALIDATION_ERROR`: fix the request body; do not retry unchanged.
-- `401 UNAUTHORIZED`: credential missing, invalid, or expired; do not guess credentials.
+- `401 CONNECTION_REQUIRED`: no active approved connection; start the connection flow and show the new link.
+- `401 UNAUTHORIZED`: an exchange secret is missing or invalid; do not guess it.
+- `409 CONNECTION_PENDING`: wait for the user to approve the link, then retry exchange with the same request.
+- `400 CONNECTION_EXPIRED` or `CONNECTION_UNAVAILABLE`: start a new connection.
 - `401 INVALID_GRANT`: request a new grant; do not reuse or alter the old one.
 - `403 FORBIDDEN`: the credential lacks the endpoint permission.
 - `404 NOT_FOUND`: verify the ID and current project state.

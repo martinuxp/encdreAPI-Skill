@@ -4,30 +4,32 @@ Base URL: `https://prod.encuadre.muxp.art/api`
 
 All successful responses use `{ "data": ... }`. Errors use `{ "error": "CODE", "message": "..." }` and may include `authUrl`, `expiresAt`, or `issues`.
 
-## Headers
+## Connection and headers
 
-Agent request:
+There is no API key. Start every new agent/chat connection with:
 
 ```http
-X-API-Key: <secret>
+POST /auth/connect
 Content-Type: application/json
+
+{ "clientName": "Optional agent name" }
 ```
 
-Temporary API session request:
+The response contains `requestId`, `exchangeSecret`, `authUrl`, `expiresAt`, and `pollAfterSeconds`. Show only `authUrl` to the user. Once the user approves it through Clerk, exchange it once:
+
+```http
+POST /auth/connect/:requestId/exchange
+X-Connection-Secret: <exchangeSecret>
+```
+
+The response contains a 30-minute `sessionToken`. Send it on every data endpoint:
 
 ```http
 X-Encuadre-Session: <temporary API session token>
 Content-Type: application/json
 ```
 
-Every data endpoint requires either `X-API-Key` or `X-Encuadre-Session`. A direct Clerk bearer token is rejected for data access. It is only accepted to bootstrap a temporary API session:
-
-```http
-POST /auth/session
-Authorization: Bearer <Clerk session token>
-```
-
-The response contains `{ "data": { "sessionToken": "...", "expiresAt": "...", "expiresInSeconds": 1800 } }`. Send `sessionToken` as `X-Encuadre-Session` on subsequent calls. It expires after 30 minutes.
+`exchangeSecret` and `sessionToken` are transient tool state, never user-provided settings or chat output. Direct Clerk bearer tokens are rejected for data access and are used only by the production web approval page.
 
 Sensitive retry:
 

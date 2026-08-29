@@ -11,22 +11,21 @@ Use this skill whenever an agent needs to interact with the Encuadre production 
 
 - Base URL: `https://prod.encuadre.muxp.art/api`.
 - Never connect an agent directly to Firestore, Storage, Clerk Admin APIs, or Firebase Admin SDK. Use the REST API only.
-- Never put `PRODUCTION_API_TOKEN` or `CLERK_SECRET_KEY` in frontend code, prompts, logs, tool output, commits, or chat messages.
+- Never put `CLERK_SECRET_KEY`, connection exchange secrets, temporary sessions, or grants in frontend code, prompts, logs, commits, or chat messages.
 - Treat contact data, project data, notes, phone numbers, emails, and media references as internal production information.
 - Do not invent Firestore paths, fields, roles, or endpoints. Use only the contract in `references/api-reference.md`.
 - Do not send arbitrary Firestore documents. Every write must use an explicit endpoint and validated fields.
 - Ask for user confirmation before a consequential write when the user has not clearly requested it. A `DELETE` is always soft delete, but still requires recent user authentication.
 
-## Authentication selection
+## Connection flow
 
-Every API call, including reads, must have exactly one of these credentials. Never make an unauthenticated exploratory call.
+There is no API key or environment secret for agents. Before every first API call in a chat, start a connection with `POST /auth/connect` and retain its `requestId` and `exchangeSecret` only in the tool state. Show the returned `authUrl` to the user and wait for their explicit approval through Clerk.
 
-1. Agent integration: `X-API-Key: <PRODUCTION_API_TOKEN>`.
-2. Temporary internal API session: `X-Encuadre-Session: <sessionToken>`.
+After the user confirms, call `POST /auth/connect/:requestId/exchange` with `X-Connection-Secret`. It returns a temporary `X-Encuadre-Session` that expires server-side after 30 minutes. Use it for all data endpoints. Do not print the exchange secret, session token, or grant in a chat response.
 
-`PRODUCTION_API_TOKEN` is a runtime secret, not part of this skill. Do not search Git, prompts, chat history, or frontend files for it. On the authorized local production workstation, use `scripts/encuadre-api.ps1`; it retrieves the Secret Manager value without displaying it. In any other environment, require `ENCUADRE_PRODUCTION_API_TOKEN` to be configured securely before proceeding.
+If `exchange` returns `CONNECTION_PENDING`, wait at least the returned two-second interval before trying again. If it returns `CONNECTION_EXPIRED`, `CONNECTION_UNAVAILABLE`, or an API call returns `CONNECTION_REQUIRED`, start a new connection and show its new link. Clerk bearer tokens are accepted only by the web approval routes; never send one from an agent to a data endpoint.
 
-A Clerk bearer token is valid only for `POST /auth/session` and `POST /auth/agent/approve`; it cannot call data endpoints. `POST /auth/session` exchanges an active Clerk session for an `X-Encuadre-Session` value which expires server-side after 30 minutes. Treat that value as a secret and do not print it in a chat response. Updates, person associations, photo uploads, and deletes also require a recent authorization grant. Never ask the user to paste the API key into a browser.
+Updates, person associations, photo uploads, and deletes also require a recent authorization grant. Never ask the user to paste any secret into a browser.
 
 ## Standard tool contract
 
@@ -55,6 +54,7 @@ Read `references/api-reference.md` before using a tool that writes, deletes, upl
 ## Required response behavior
 
 - Preserve the API's structured error fields: `error`, `message`, and any `authUrl`/`expiresAt`.
+- If the API returns `CONNECTION_REQUIRED`, start a connection and show the returned `authUrl`; do not attempt an unauthenticated retry.
 - If the API returns `AUTH_REQUIRED`, show the user the returned `authUrl`, explain that it is a short-lived Clerk reauthentication link, and wait for the user to complete it before retrying the exact same operation.
 - Retry only with the returned `grantId`, never with a guessed, reused, or client-invented grant.
 - Report the resulting resource ID and operation outcome, but do not echo credentials or complete tokens.
