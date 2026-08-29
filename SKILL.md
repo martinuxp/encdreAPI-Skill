@@ -27,6 +27,14 @@ If `exchange` returns `CONNECTION_PENDING`, wait at least the returned two-secon
 
 Updates, person associations, photo uploads, and deletes also require a recent authorization grant. Never ask the user to paste any secret into a browser.
 
+## Cloud and ChatGPT mode
+
+This skill is cloud-first. Do not use PowerShell, Firebase CLI, local files, environment variables, or a user-provided API key to access the API.
+
+When the chat runtime has an HTTPS Action, API tool, or remote connector, keep this private state inside that tool runtime only: `requestId`, `exchangeSecret`, then `sessionToken` and its expiry. The user sees only the approval link and normal API results. A normal ChatGPT conversation needs a Custom GPT Action or compatible connector to make HTTP calls; configure that Action with **no static authentication** and import the provided OpenAPI contract. The user authorization happens through the Encuadre link, not ChatGPT's Action settings.
+
+If the cloud runtime cannot retain private values across tool calls, it cannot safely use this API yet. Explain that a stateful Action/connector or OAuth bridge is required; never ask the user to paste an exchange secret or temporary session into chat.
+
 ## Standard tool contract
 
 Expose or emulate these agent tools using HTTP calls described in the reference:
@@ -50,6 +58,7 @@ Expose or emulate these agent tools using HTTP calls described in the reference:
 - `delete_contact(id)`
 
 Read `references/api-reference.md` before using a tool that writes, deletes, uploads, or handles a new resource type. Read `references/security-and-workflow.md` whenever a request returns `AUTH_REQUIRED`, `INVALID_GRANT`, or involves a destructive/sensitive action.
+Read `references/cloud-chatgpt.md` before configuring or using this skill in a ChatGPT cloud conversation.
 
 ## Required response behavior
 

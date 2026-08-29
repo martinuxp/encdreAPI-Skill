@@ -52,6 +52,12 @@ X-Encuadre-Session: <TEMPORARY_API_SESSION_TOKEN>
 
 La sesión de API vence en el servidor después de 30 minutos. Los valores temporales de canje y sesión no se incluyen en frontend, prompts, logs, commits ni respuestas del agente.
 
+## ChatGPT en nube
+
+No requiere variables locales, terminal ni una API key. Para que un ChatGPT cloud pueda llamar la API, añade una Action o conector HTTPS que use el contrato OpenAPI incluido en el plugin de Encuadre y selecciona autenticación **None**. El agente inicia `/auth/connect`, muestra el enlace de Clerk, conserva los valores temporales dentro del estado privado de la herramienta y luego llama la API con la sesión emitida.
+
+Una conversación normal sin Action, app o conector no puede ejecutar HTTP por sí sola. Si el runtime no conserva estado privado entre llamadas, no se debe pedir al usuario que copie secretos: requiere un conector stateful u OAuth.
+
 ## Operaciones sensibles
 
 Las actualizaciones, cambios de personas, subidas de fotos y eliminaciones requieren un authorization grant emitido después de una reautenticación Clerk.

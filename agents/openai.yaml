@@ -1,4 +1,4 @@
 interface:
   display_name: "Encuadre Production API"
-  short_description: "Use the Encuadre production portal API safely"
-  default_prompt: "Use $encuadre-production-api to operate the Encuadre production portal API safely."
+  short_description: "Connect safely to Encuadre production from cloud or local agents"
+  default_prompt: "Use $encuadre-production-api. Start a connection link first; never request an API key or local environment variable."
