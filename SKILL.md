@@ -31,9 +31,11 @@ Updates, person associations, photo uploads, and deletes also require a recent a
 
 This skill is cloud-first. Do not use PowerShell, Firebase CLI, local files, environment variables, or a user-provided API key to access the API.
 
-When the chat runtime has an HTTPS Action, API tool, or remote connector, keep this private state inside that tool runtime only: `requestId`, `exchangeSecret`, then `sessionToken` and its expiry. The user sees only the approval link and normal API results. A normal ChatGPT conversation needs a Custom GPT Action or compatible connector to make HTTP calls; configure that Action with **no static authentication** and import the provided OpenAPI contract. The user authorization happens through the Encuadre link, not ChatGPT's Action settings.
+For a normal ChatGPT cloud conversation, use the remote MCP connector at `https://prod.encuadre.muxp.art/mcp`. It uses OAuth authorization code flow with PKCE. ChatGPT owns the OAuth state and bearer token: the user is redirected to Encuadre, signs in with Clerk, and explicitly approves access. The MCP access token is opaque, server-side validated, and expires after 30 minutes; do not request or create refresh access.
 
-If the cloud runtime cannot retain private values across tool calls, it cannot safely use this API yet. Explain that a stateful Action/connector or OAuth bridge is required; never ask the user to paste an exchange secret or temporary session into chat.
+The current MCP connector exposes the read tools `list_projects`, `get_project`, `get_project_context`, `list_contacts`, and `get_contact`. For a workflow that needs writes, use the REST API connection and recent-grant flow described above until a corresponding MCP write tool is explicitly published.
+
+Read `references/cloud-chatgpt.md` before configuring the connector. Never ask the user to paste an OAuth code, PKCE verifier, exchange secret, or session token into chat.
 
 ## Standard tool contract
 

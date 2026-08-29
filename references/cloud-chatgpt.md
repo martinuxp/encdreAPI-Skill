@@ -1,19 +1,27 @@
 # ChatGPT cloud setup
 
-A standard ChatGPT conversation needs an Action, app, or compatible HTTPS connector before it can call this API. Do not ask the user for an API key: there is none.
+Use the remote MCP server instead of a Custom GPT Action:
 
-For a Custom GPT Action:
+```text
+https://prod.encuadre.muxp.art/mcp
+```
 
-1. Import `references/encuadre-cloud.openapi.yaml` from this skill.
-2. Select **None** for Action authentication. The API connection is authorized by the Clerk approval link, not by ChatGPT configuration.
-3. Allow the `prod.encuadre.muxp.art` domain in the workspace when applicable.
-4. Test the connection flow in Action preview.
+The connector advertises OAuth metadata at:
 
-Cloud execution state is private to the tool runtime:
+```text
+https://prod.encuadre.muxp.art/.well-known/oauth-protected-resource/mcp
+```
 
-- Start: retain `requestId` and `exchangeSecret`; show only `authUrl`.
-- Approved: exchange once and retain `sessionToken` with its expiry.
-- Requests: send `X-Encuadre-Session`.
-- Expired: discard the values and start a new connection.
+ChatGPT starts OAuth automatically. The user is sent to `prod.encuadre.muxp.art`, signs in with their Encuadre Clerk account, and explicitly approves the connection. The callback and PKCE verifier remain inside ChatGPT. Do not copy them into a prompt or ask a user to handle them.
 
-Never put the exchange secret or session in user-visible messages, custom instructions, Action authentication settings, or persistent storage. A runtime that cannot preserve private state cannot safely perform calls after the approval step; use a stateful connector or OAuth bridge instead.
+Access is limited to `projects:read` and `contacts:read`. The opaque bearer token expires after 30 minutes and the server does not issue a refresh token; connecting again is required after expiry.
+
+Current MCP tools:
+
+- `list_projects(search?, includeArchived?)`
+- `get_project(id)`
+- `get_project_context(id)`
+- `list_contacts(search?)`
+- `get_contact(id)`
+
+The REST OpenAPI contract remains available for runtimes that can keep private state and need writes. It is not the preferred path for a normal ChatGPT cloud chat.
