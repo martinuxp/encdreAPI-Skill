@@ -4,7 +4,7 @@ A standard ChatGPT conversation needs an Action, app, or compatible HTTPS connec
 
 For a Custom GPT Action:
 
-1. Import the Encuadre OpenAPI contract.
+1. Import `references/encuadre-cloud.openapi.yaml` from this skill.
 2. Select **None** for Action authentication. The API connection is authorized by the Clerk approval link, not by ChatGPT configuration.
 3. Allow the `prod.encuadre.muxp.art` domain in the workspace when applicable.
 4. Test the connection flow in Action preview.
