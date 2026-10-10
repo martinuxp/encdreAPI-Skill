@@ -27,15 +27,15 @@ If `exchange` returns `CONNECTION_PENDING`, wait at least the returned two-secon
 
 Updates, person associations, photo uploads, and deletes also require a recent authorization grant. Never ask the user to paste any secret into a browser.
 
-## Cloud and ChatGPT mode
+## Cloud mode (Claude and ChatGPT)
 
 This skill is cloud-first. Do not use PowerShell, Firebase CLI, local files, environment variables, or a user-provided API key to access the API.
 
-For a normal ChatGPT cloud conversation, use the remote MCP connector at `https://prod.encuadre.muxp.art/mcp`. It uses OAuth authorization code flow with PKCE. ChatGPT owns the OAuth state and bearer token: the user is redirected to Encuadre, signs in with Clerk, and explicitly approves access. The MCP access token is opaque, server-side validated, and expires after 30 minutes; do not request or create refresh access.
+When the `encuadre` MCP server is connected (Claude Code, Claude.ai/Desktop custom connector, or ChatGPT), use its tools at `https://prod.encuadre.muxp.art/mcp`. It uses OAuth authorization code flow with PKCE. The client owns the OAuth state and bearer token: the user is redirected to Encuadre, signs in with Clerk, and explicitly approves access. The MCP access token is opaque, server-side validated, and expires after 30 minutes; do not request or create refresh access.
 
 The MCP connector exposes reads and all supported production writes: projects, contacts, project people, contact photos, and soft deletes. Every MCP write has its own Clerk approval link and is bound to the exact operation and validated payload. The agent must show that link, wait, and retry the same tool with the returned `approvalRequestId`.
 
-Read `references/cloud-chatgpt.md` before configuring the connector and `references/mcp-tools.md` before making an MCP write. Never ask the user to paste an OAuth code, PKCE verifier, exchange secret, session token, or approval code into chat.
+Read `references/cloud-chatgpt.md` (covers Claude too) before configuring the connector and `references/mcp-tools.md` before making an MCP write. Never ask the user to paste an OAuth code, PKCE verifier, exchange secret, session token, or approval code into chat.
 
 ## Standard tool contract
 
@@ -60,7 +60,7 @@ Expose or emulate these agent tools using HTTP calls described in the reference:
 - `delete_contact(id)`
 
 Read `references/api-reference.md` before using a tool that writes, deletes, uploads, or handles a new resource type. Read `references/security-and-workflow.md` whenever a request returns `AUTH_REQUIRED`, `INVALID_GRANT`, or involves a destructive/sensitive action.
-Read `references/cloud-chatgpt.md` before configuring or using this skill in a ChatGPT cloud conversation.
+Read `references/cloud-chatgpt.md` before configuring or using this skill in a cloud conversation.
 
 ## Required response behavior
 

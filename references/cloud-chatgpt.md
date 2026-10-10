@@ -1,38 +1,23 @@
-# ChatGPT cloud setup
+# Conector MCP remoto (ChatGPT y Claude)
 
-Use the remote MCP server instead of a Custom GPT Action:
+Servidor MCP remoto (Streamable HTTP, sin estado):
 
 ```text
 https://prod.encuadre.muxp.art/mcp
 ```
 
-The connector advertises OAuth metadata at:
+Metadatos OAuth: `https://prod.encuadre.muxp.art/.well-known/oauth-protected-resource/mcp` y `/.well-known/oauth-authorization-server`.
 
-```text
-https://prod.encuadre.muxp.art/.well-known/oauth-protected-resource/mcp
-```
+El cliente (ChatGPT o Claude) inicia OAuth con PKCE y registro dinámico. El usuario entra a `prod.encuadre.muxp.art`, inicia sesión con Clerk y aprueba. El token es opaco, dura 30 minutos y no hay refresh token: al vencer hay que reconectar.
 
-ChatGPT starts OAuth automatically. The user is sent to `prod.encuadre.muxp.art`, signs in with their Encuadre Clerk account, and explicitly approves the connection. The callback and PKCE verifier remain inside ChatGPT. Do not copy them into a prompt or ask a user to handle them.
+## Claude
 
-Access covers the published project, contact, person, and file scopes. The opaque bearer token expires after 30 minutes and the server does not issue a refresh token; connecting again is required after expiry.
+- **Claude Code**: `claude mcp add --transport http encuadre https://prod.encuadre.muxp.art/mcp` (o usar el `.mcp.json` del proyecto) y luego `/mcp` → Authenticate.
+- **Claude.ai / Desktop / móvil**: Configuración → Conectores → Añadir conector personalizado → URL del servidor anterior.
 
-Current MCP tools:
+## Herramientas
 
-- `list_projects(search?, includeArchived?)`
-- `get_project(id)`
-- `get_project_context(id)`
-- `list_contacts(search?)`
-- `get_contact(id)`
-- `create_project(data, approvalRequestId?)`
-- `update_project(id, data, approvalRequestId?)`
-- `delete_project(id, approvalRequestId?)`
-- `create_contact(data, approvalRequestId?)`
-- `update_contact(id, data, approvalRequestId?)`
-- `delete_contact(id, approvalRequestId?)`
-- `list_project_people(projectId)`
-- `add_person_to_project(projectId, type, person, approvalRequestId?)`
-- `update_project_person(projectId, personId, type, data, approvalRequestId?)`
-- `remove_person_from_project(projectId, personId, type, approvalRequestId?)`
-- `upload_contact_photo(contactId, contentBase64, mimeType, approvalRequestId?)`
+Lecturas: `list_projects`, `get_project`, `get_project_context`, `list_contacts`, `get_contact`, `list_project_people`.
+Escrituras (cada una requiere aprobación Clerk): `create_project`, `update_project`, `delete_project`, `create_contact`, `update_contact`, `delete_contact`, `add_person_to_project`, `update_project_person`, `remove_person_from_project`, `upload_contact_photo`.
 
-For every write, the first MCP call returns an `authUrl` and `approvalRequestId`. Show the URL, wait for Clerk approval, then retry the same tool with the same payload and that identifier. See `mcp-tools.md` for the required behavior and fields.
+En toda escritura la primera llamada devuelve `authUrl` y `approvalRequestId`. Muestra el enlace, espera la aprobación y repite la misma herramienta con el mismo payload y ese `approvalRequestId`. Ver `mcp-tools.md`.
